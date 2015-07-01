@@ -1,0 +1,37 @@
+#define white 40
+#define grey 30
+task main(){
+	SetSensorLight(IN_1);
+		SetSensorLight(IN_2);
+	  int va;
+	 	va = 30;
+	  	
+	while(true){
+		NumOut(40,LCD_LINE1, Sensor(IN_1));
+       	 NumOut(60,LCD_LINE1, Sensor(IN_2));
+		while(Sensor(IN_1) > white && Sensor(IN_2) > white){
+			OnFwd(OUT_AB, va);
+			//Wait(100);
+			}
+			while(Sensor(IN_2) < white && Sensor(IN_1) >= grey){
+					int vba = 15;
+					int vbb =15;
+				OnFwd(OUT_A, va+vba);
+				OnRev(OUT_B, va);
+				//Wait(300);
+					vbb++;
+			}
+
+			while(Sensor(IN_1) < white  && Sensor(IN_2) >= grey ){
+					int	vbb = 15;
+					int vba = 15;
+				OnFwd(OUT_B, va+vbb);
+				OnRev(OUT_A, va);
+				//Wait(300);
+					vba++;
+
+			}
+
+		}
+	}
+
