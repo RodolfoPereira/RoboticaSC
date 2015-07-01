@@ -11,14 +11,12 @@ task main(){
        	 NumOut(60,LCD_LINE1, Sensor(IN_2));
 		while(Sensor(IN_1) > white && Sensor(IN_2) > white){
 			OnFwd(OUT_AB, va);
-			//Wait(100);
 			}
 			while(Sensor(IN_2) < white && Sensor(IN_1) >= grey){
 					int vba = 15;
 					int vbb =15;
 				OnFwd(OUT_A, va+vba);
 				OnRev(OUT_B, va);
-				//Wait(300);
 					vbb++;
 			}
 
@@ -27,7 +25,6 @@ task main(){
 					int vba = 15;
 				OnFwd(OUT_B, va+vbb);
 				OnRev(OUT_A, va);
-				//Wait(300);
 					vba++;
 
 			}
