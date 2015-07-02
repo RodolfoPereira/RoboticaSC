@@ -1,34 +1,71 @@
 #define white 40
 #define grey 30
+
+//#define PARADO 0
+
+enum{
+    PARADO=0,
+    AJUSTE_ESQ=1,
+    AJUSTE_DIR=2
+
+};
+
+bool evento1(){
+ return (Sensor(IN_1) > white && Sensor(IN_2) > white);}
+bool evento2(){
+return (Sensor(IN_1) < white && Sensor(IN_2) < white)
+}
+int determinarEstado(int e){
+    if(evento1() == true){
+        e = PARADO;
+    }
+    if(evento2()== true){
+        e = AJUSTE_ESQ;
+
+    }
+    return e;
+}
 task main(){
-	SetSensorLight(IN_1);
+        SetSensorLight(IN_1);
 		SetSensorLight(IN_2);
-	  int va;
+	    int va;
+        int estado = 0;
 	 	va = 30;
-	  	
-	while(true){
+
+    while(true){
+        estado = determinarEstado(estado);
+        if(estado == 1){
+            OnFwd(OUT_AB, 30);
+
+        }
+        if(estado==0){
+            OnFwd(OUT_AB,0);
+        }
 		NumOut(40,LCD_LINE1, Sensor(IN_1));
-       	 NumOut(60,LCD_LINE1, Sensor(IN_2));
-		while(Sensor(IN_1) > white && Sensor(IN_2) > white){
-			OnFwd(OUT_AB, va);
-			}
-			while(Sensor(IN_2) < white && Sensor(IN_1) >= grey){
-					int vba = 15;
-					int vbb =15;
-				OnFwd(OUT_A, va+vba);
-				OnRev(OUT_B, va);
-					vbb++;
-			}
+        NumOut(60,LCD_LINE1, Sensor(IN_2));
 
-			while(Sensor(IN_1) < white  && Sensor(IN_2) >= grey ){
-					int	vbb = 15;
-					int vba = 15;
-				OnFwd(OUT_B, va+vbb);
-				OnRev(OUT_A, va);
-					vba++;
+		//if(Sensor(IN_1) > white && Sensor(IN_2) > white){
+			//estado = 1;
+		//	}
+			//if(){
 
-			}
+			//}
+			//(Sensor(IN_2) < white && Sensor(IN_1) >= grey){
+				//	int vba = 15;
+			//		int vbb =15;
+			//	OnFwd(OUT_A, va+vba);
+			//	OnRev(OUT_B, va);
+			//		vbb++;
+			//}
 
-		}
-	}
+			//while(Sensor(IN_1) < white  && Sensor(IN_2) >= grey ){
+			//		int	vbb = 15;
+				//	int vba = 15;
+			//	OnFwd(OUT_B, va+vbb);
+			//	OnRev(OUT_A, va);
+				//	vba++;
+
+    }
+
+}
 
