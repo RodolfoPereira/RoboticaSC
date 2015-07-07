@@ -1,37 +1,59 @@
-#define white 40
-#define grey 30
+#define PRETO 30
+#define BRANCO 40
+#define SENSOR_LUZ_DIR IN_1
+#define SENSOR_LUZ_ESQ IN_2
+
+enum{
+ESTADOI=1;
+ESTADOII=2;
+ESTADOIII=3
+
+};
+
+bool evento1(){
+    return(Sensor(SENSOR_LUZ_DIR) > BRANCO && Sensor(SENSOR_LUZ_ESQ) > BRANCO);
+}
+bool evento2(){
+    return(Sensor(SENSOR_LUZ_DIR) < BRANCO && Sensor(SENSOR_LUZ_ESQ) >= PRETO );
+}
+bool evento3(){
+    return(Sensor(SENSOR_LUZ_ESQ) < BRANCO && Sensor(SENSOR_LUZ_DIR) >= PRETO);
+}
+int determinarEstado(int e){
+    if(evento1()==true){
+        e = ESTADOI;
+    }
+    if(evento2()==true){
+        e = ESTADOII;
+    }
+    if(evento3()==true){
+        e = ESTADOIII;
+    }
+return e;
+
+}
 task main(){
-	SetSensorLight(IN_1);
-		SetSensorLight(IN_2);
-	  int va;
-	 	va = 30;
-	  	
-	while(true){
-		NumOut(40,LCD_LINE1, Sensor(IN_1));
-       	 NumOut(60,LCD_LINE1, Sensor(IN_2));
-		while(Sensor(IN_1) > white && Sensor(IN_2) > white){
-			OnFwd(OUT_AB, va);
-			//Wait(100);
-			}
-			while(Sensor(IN_2) < white && Sensor(IN_1) >= grey){
-					int vba = 15;
-					int vbb =15;
-				OnFwd(OUT_A, va+vba);
-				OnRev(OUT_B, va);
-				//Wait(300);
-					vbb++;
-			}
+    SetSensorLight(SENSOR_LUZ_DIR);
+    SetSensorLight(SENSOR_LUZ_ESQ);
+        int estado;
 
-			while(Sensor(IN_1) < white  && Sensor(IN_2) >= grey ){
-					int	vbb = 15;
-					int vba = 15;
-				OnFwd(OUT_B, va+vbb);
-				OnRev(OUT_A, va);
-				//Wait(300);
-					vba++;
+        while(true){
+            estado = determinarEstado();
+            if(estado==1){
+                OnFwd(OUT_AB, 35);
+            }
+            if(estado==2){
+                OnFwd(OUT_A,35);
+                OnRev(OUT_B, 15);
+            }
+            if(estado==3){
+                OnFwd(OUT_B,35);
+                OnRev(OUT_A, 15);
+            }
 
-			}
+        }
 
-		}
-	}
+}
+
+
 
