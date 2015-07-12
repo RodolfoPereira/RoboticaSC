@@ -4,7 +4,7 @@
 #define SENSOR_LUZ_ESQ IN_2
 #define VEL_LINEAR 30
 #define VEL_ANG 30
-#include "robo.h"
+//#include "robo.h"
 
 enum{
     ESTADOI=1;
@@ -37,7 +37,7 @@ return e;
 task main(){
     SetSensorLight(SENSOR_LUZ_DIR);
     SetSensorLight(SENSOR_LUZ_ESQ);
-        NumOut(50, LCD_LINE2, rodolfo())
+//        NumOut(50, LCD_LINE2, rodolfo())
         int estado;
 
         while(true){
