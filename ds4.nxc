@@ -1,0 +1,62 @@
+#define PRETO 30
+#define BRANCO 40
+#define SENSOR_LUZ_DIR IN_1
+#define SENSOR_LUZ_ESQ IN_2
+#define VEL_LINEAR 30
+#define VEL_ANG 30
+//#include "robo.h"
+
+enum Estado{
+    ESTADOI,
+    ESTADOII,
+    ESTADOIII
+};
+
+bool evento1(){
+    return(Sensor(SENSOR_LUZ_DIR) >= BRANCO && Sensor(SENSOR_LUZ_ESQ) >= BRANCO);
+}
+bool evento2(){
+    return(Sensor(SENSOR_LUZ_DIR) < BRANCO && Sensor(SENSOR_LUZ_ESQ) >= PRETO );
+}
+bool evento3(){
+    return(Sensor(SENSOR_LUZ_ESQ) < BRANCO && Sensor(SENSOR_LUZ_DIR) >= PRETO);
+}
+Estado determinarEstado(Estado e){
+    if(evento1()==true){
+        e = ESTADOI;
+    }
+    if(evento2()==true){
+        e = ESTADOII;
+    }
+    if(evento3()==true){
+        e = ESTADOIII;
+    }
+return e;
+
+}
+task main(){
+    SetSensorLight(SENSOR_LUZ_DIR);
+    SetSensorLight(SENSOR_LUZ_ESQ);
+//        NumOut(50, LCD_LINE2, rodolfo())
+        Estado estado;
+
+        while(true){
+            estado = determinarEstado(estado);
+            if(estado==ESTADOI){
+                OnFwd(OUT_AB, VEL_LINEAR);
+            }
+            if(estado==ESTADOII){
+                OnFwd(OUT_B,VEL_LINEAR + VEL_ANG);
+                OnRev(OUT_A,VEL_LINEAR);
+            }
+            if(estado==ESTADOIII){
+                OnFwd(OUT_A,VEL_LINEAR + VEL_ANG);
+                OnRev(OUT_B, VEL_LINEAR);
+            }
+
+        }
+
+}
+
+
+

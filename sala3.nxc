@@ -1,0 +1,105 @@
+#include "pose.h"
+#include "controle.h"
+
+
+task main(){
+    float som_erro_theta = 0;
+    float erro_theta = 0;
+    float erro_linear = 0;
+    int ponto = 0; // contador que recebe 1 sempre que o pose_ref[] é alterado.
+    bool primeira_vez = true;
+
+    Acionamento motor;
+    Pose    pose_atual;
+    Pose    refer;
+
+    refer.x = 0;
+    refer.y = 0;
+    refer.theta = 0;
+
+    Pose pose_ref[5];
+
+    pose_ref[0].x = 100;
+    pose_ref[0].y = 0;
+    pose_ref[0].theta =0;
+
+    pose_ref[1].x = 100;
+    pose_ref[1].y = 0;
+    pose_ref[1].theta = -90;
+
+    //GIRA ATÉ CHEGAR EM 180°
+    pose_ref[2].x = 100;
+    pose_ref[2].y = -70;
+    pose_ref[2].theta = -90;
+   
+    pose_ref[3].x = 100;
+    pose_ref[3].y = -70;
+    pose_ref[3].theta = -180;
+	
+    pose_ref[4].x = -100;
+    pose_ref[4].y = -70;
+    pose_ref[4].theta = -180;
+ 
+
+    refer = pose_ref[ponto];
+
+    while(true){
+        TextOut(0, LCD_LINE8, "Ponto");
+        NumOut(40, LCD_LINE8, ponto);
+        atualiza_pose2(pose_atual);  //lê os sensores e atualiza a pose do robô
+        //roda o código de controle  utilizando a referência e a pose e o resultado é colocado em motor
+        erro_linear = controle_linear(refer,pose_atual,motor);
+        TextOut(0,LCD_LINE7,"Vel");
+        NumOut(20, LCD_LINE7, motor.vel);
+        //aciona os motores utilizando a velocidade do motor e o percentural de giro do motor.
+        OnFwdSyncPID(OUT_AB, motor.vel, motor.per_giro, 30, 90, 50);
+        //calcula o erro theta do robô
+        erro_theta = atan2(refer.theta - pose_atual.theta);
+
+
+    //2ª POSIÇÃO DO VETOR "pose_ref[]": GIRAR PARA DIREITA
+    if(erro_linear > -9 && erro_linear < 9){
+        if(primeira_vez){
+            ponto = ponto + 1;
+            refer = pose_ref[ponto];
+            primeira_vez = false;
+        }
+        atualiza_pose2(pose_atual); //lê os sensores e atualiza a pose do robô
+        //refer.theta = 90;  //atualiza com uma nova referência para o ângulo
+        //roda o código de controle  utilizando a referência e a pose e o resultado é colocado em motor
+        erro_theta = controle_angular(refer, pose_atual, motor);
+        //aciona os motores utilizando a velocidade do motor e o percentural de giro do motor.
+        OnFwdSyncPID(OUT_AB, motor.vel, motor.per_giro, 30, 90, 50);
+
+
+
+        // 3ª POSIÇÃO DO VETOR "pose_ref[]": MOVER OS DOIS MOTORES, SINCRONIZADOS, PARA FRENTE
+        if(erro_theta > -14 && erro_theta < 14){
+            // refer.x=-30; //atualiza com uma nova referência para o X
+            // refer.y=-30; //atualiza com uma nova referência para o Y
+            ponto = ponto + 1;
+            refer = pose_ref[ponto];
+            som_erro_theta = 0;
+            primeira_vez = true;
+        }
+    }
+
+
+        Stop(ponto >= 4);
+
+        //Código para Debug
+
+        NumOut(20, LCD_LINE1, pose_atual.x);
+        NumOut(30, LCD_LINE2, pose_atual.y);
+        NumOut(20, LCD_LINE3, pose_atual.theta);
+        TextOut(0,LCD_LINE5, "erro_linear");
+        NumOut(60, LCD_LINE5, erro_linear);
+        TextOut(0, LCD_LINE6, "erro_ang");
+        NumOut(60, LCD_LINE6, erro_theta);
+    //    NumOut(60, LCD_LINE7, atan2(3500));
+
+        Wait(1000);
+        ClearScreen();
+    }
+
+}
