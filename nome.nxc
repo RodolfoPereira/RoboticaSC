@@ -1,0 +1,206 @@
+#define PRETO 1//Sensor de cores
+#define AZUL 2//Sensor de cores
+#define VERDE 3 //Sensor de cores
+#define AMARELO 4//Sensor de cores
+#define VERMELHO 5//Sensor de cores
+#define BRANCO 6//Sensor de cores
+#define WHITE 45//Sensor de luz
+#define GREY 35//Sensor de luz
+//#define SENSOR_LUZ_DIR IN_1
+//#define SENSOR_LUZ_ESQ IN_2
+#define SENSOR_COR_DIR IN_2
+#define SENSOR_COR_ESQ IN_3
+#define SENSOR_SONAR IN_4
+#define DISTANCIA 30
+#define VEL_LINEAR -40
+#define VEL_ANG -45
+#include "HTSMUX-driver.h"
+#include "pose.h"
+#include "controle.h"
+
+
+enum{
+    IR_FRENTE = 1;
+    VIRAR_DIR = 2;
+    VIRAR_ESQ = 3;
+    VERDE_DIR = 4;
+    VERDE_ESQ = 5;
+    VERD_INIC_DIR = 6;
+    VERD_INIC_ESQ = 7;
+    DESVIAR_OBS = 8
+};
+//FUNÇÕES DE RETORNO DOS EVENTOS PARA DETERMINAÇÃO DOS ESTADOS DO ROBÔ
+//=========================================================================================================>
+bool branco_branco(){   
+    return(smuxSensorLegoLightNorm(msensor_S1_3) > WHITE && smuxSensorLegoLightNorm(msensor_S1_4) > WHITE);
+}
+bool preto_branco(){
+    return(smuxSensorLegoLightNorm(msensor_S1_3) < WHITE && smuxSensorLegoLightNorm(msensor_S1_4) >= GREY);
+}
+bool branco_preto(){
+    return(smuxSensorLegoLightNorm(msensor_S1_4) < WHITE && smuxSensorLegoLightNorm(msensor_S1_3) >= GREY);
+}
+bool obstaculo(){
+    return(SensorUS(SENSOR_SONAR) <= 0) ? false : SensorUS(SENSOR_SONAR) <= DISTANCIA;
+}
+bool verde_direita(){
+    return(Sensor(SENSOR_COR_DIR) == VERDE);
+}
+bool verde_esquerda(){
+    return(Sensor(SENSOR_COR_ESQ) == VERDE);
+}
+bool PRETO_PRETO(){
+    return(smuxSensorLegoLightNorm(msensor_S1_3) <= GREY && smuxSensorLegoLightNorm(msensor_S1_4) <= GREY);
+}
+bool preto_preto(){
+    return(Sensor(SENSOR_COR_DIR) == PRETO && Sensor(SENSOR_COR_ESQ) == PRETO);
+}
+//==========================================================================================================>
+int determinarEstado(int e){
+    if(branco_branco()){
+        e = IR_FRENTE;
+    }
+    if(preto_branco() ){
+        e = VIRAR_DIR;
+    }
+    if(branco_preto()){
+        e = VIRAR_ESQ;
+    }
+    if(obstaculo()){
+        e = DESVIAR_OBS;
+    }
+    if(preto_preto()||PRETO_PRETO()){
+        //PlayTone(500,500);
+            e = IR_FRENTE;
+    }
+    if(verde_direita()){
+        e = VERDE_DIR;
+    }
+    if(verde_esquerda()){
+        e = VERDE_ESQ;
+    }
+
+    return e;
+
+}
+task main(){
+	
+
+// LIGANDO OS SENSORES
+//=======================================================>
+    SetSensor(S1, SENSOR_LOWSPEED);
+
+    smuxSetSensorLegoLight(msensor_S1_4,true);
+    smuxSensorLegoLightNorm(msensor_S1_4);
+    smuxSetSensorLegoLight(msensor_S1_3,true);
+    smuxSensorLegoLightNorm(msensor_S1_3);
+
+    SetSensorType(SENSOR_COR_DIR, SENSOR_TYPE_COLORFULL);
+    SetSensorType(SENSOR_COR_ESQ, SENSOR_TYPE_COLORFULL);
+    SetSensorType(SENSOR_SONAR, SENSOR_TYPE_LOWSPEED);
+
+//TESTANDO O MUX
+    if (!HTSMUXscanPorts(S1)) {
+    // Scan failed, handle the error
+    TextOut(0, LCD_LINE1, "Scan failed!");
+    Wait(10);
+    }
+//INICIALIZAÇÃO DAS VARIAVEIS E STRUCTURES
+//=========================================================>
+    int distancia;
+    int estado = IR_FRENTE;
+    bool rescue_on = false;			
+    bool primeira_vez = true;
+    float som_erro_theta = 0;
+    float erro_theta = 0;
+    float erro_linear = 0;
+    int ponto = 0; // contador que recebe 1 sempre que o pose_ref[] é alterado.
+    Acionamento motor;
+    Pose    pose_atual;
+    Pose    refer;
+    refer.x = 0;
+    refer.y = 0;
+    refer.theta = 0;
+
+    Pose pose_ref[4];
+
+    //ANDAR PARA FRENTE
+    pose_ref[0].x = 0;
+    pose_ref[0].y = 0;
+    pose_ref[0].theta = 0;
+
+    //GIRA ATÉ CHEGAR EM 90°
+    pose_ref[1].x = 0;
+    pose_ref[1].y = 0;
+    pose_ref[1].theta = 90;
+
+    //ANDAR APENAS NO EIXO Y
+    pose_ref[2].x = -30;
+    pose_ref[2].y = 0;
+    pose_ref[2].theta = 90;
+
+    //GIRA ATÉ CHEGAR EM 180°
+    pose_ref[3].x = -30;
+    pose_ref[3].y = -30;
+    pose_ref[3].theta = 180;
+    refer = pose_ref[ponto];
+//============================================================================>
+        while(true){
+		NumOut(50,LCD_LINE5, distancia);
+	        NumOut(50,LCD_LINE2, estado);
+		distancia = SensorUS(SENSOR_SONAR);
+		estado = determinarEstado(estado);
+		if(estado == IR_FRENTE && rescue_on == false){
+			OnFwdReg(OUT_AB, VEL_LINEAR, OUT_REGMODE_SYNC);
+		    }
+		    if(estado == VIRAR_DIR && rescue_on == false){
+		        OnFwd(OUT_A, VEL_ANG+VEL_LINEAR);
+		        OnRev(OUT_B, VEL_ANG);
+		    }
+		    if(estado == VIRAR_ESQ && rescue_on == false){
+		        OnFwd(OUT_B, VEL_ANG+VEL_LINEAR);
+		        OnRev(OUT_A, VEL_ANG);
+		    }
+		    if(estado == DESVIAR_OBS){
+			rescue_on = true;
+		        if(distancia <= 15){
+		            OnFwdReg(OUT_AB, -20, OUT_REGMODE_SYNC);// == OnRev(...);
+		            Wait(1200);
+		        }
+		        if(distancia >= 15){
+		            //  PlayTone(233,500);
+		            atualiza_pose2(pose_atual);
+			    //erro_theta = refer.theta - pose_atual.theta;
+		            erro_theta = controle_angular(refer, pose_atual, motor);
+		            OnFwdSyncPID(OUT_AB, motor.vel, motor.per_giro, 30, 90, 50);
+		            if(erro_theta > -10 && erro_theta < 10){
+		                if(primeira_vez){ 
+		                  ponto = ponto + 1;
+		                  refer = pose_ref[ponto];
+		                  primeira_vez = false;
+		                 }
+		                erro_linear = controle_linear(refer,pose_atual,motor);
+		                OnFwdSyncPID(OUT_AB, motor.vel, motor.per_giro, 30, 90, 50);
+		                if(erro_linear > -5 && erro_linear < 5){
+		                   ponto = ponto + 1;
+		                   refer = pose_ref[ponto];
+		                   primeira_vez = true;
+		                  }
+		            }
+		        }if(ponto >= 3){rescue_on = false;}
+		    }
+		    if(estado == VERDE_DIR){
+		        //PlayTone(277,500);
+		        RotateMotorEx(OUT_AB,-60 , 180 , 0 , true , true);
+		        RotateMotorEx(OUT_AB,-65 , 560 , 90 , true ,true);
+		        RotateMotor(OUT_AB,-60 , 100);
+		    }
+		    if(estado == VERDE_ESQ){
+		        //PlayTone(277,500);
+		        RotateMotorEx(OUT_AB,-60 , 180 , 0 , true , true);
+		        RotateMotorEx(OUT_AB,-65 , 580 , -90 , true ,true);
+		        RotateMotor(OUT_AB,-60 , 100);
+		    }
+        }Wait(160);
+//================================================================================>
+}
