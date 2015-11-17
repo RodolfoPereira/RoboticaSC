@@ -1,9 +1,10 @@
 #include "pose.h"
+#include "util.h"
 
 #ifndef CONTROLE_H
 #define CONTROLE_H
 
-#define P_ANGULO -0.96
+#define P_ANGULO -0.97
 #define P_LINEAR 3.9
 #define I_LINEAR 0.75
 
@@ -11,9 +12,6 @@ struct Acionamento{
     int vel;
     int per_giro;
 };
-
-float cos(float ang){ return (Cos(ang)/100.0);}
-float sin(float ang){ return (Sin(ang)/100.0);}
 
 float controle_som_erro_theta = 0;
 float controle_som_err_linear = 0;
@@ -32,7 +30,7 @@ float controle_linear(Pose refer, Pose atual, Acionamento &a){
     float erro_theta = 0;
 
     int percent_giro = 0;
-    float P = 0.00000001;
+    float P = 0.00000015;
     float I = 0.000000000005;
 
 
@@ -43,8 +41,9 @@ float controle_linear(Pose refer, Pose atual, Acionamento &a){
 
     int velocidade_linear = 0;
 
-    erro_theta = theta_referencia - theta;
+    erro_theta = atan2(theta_referencia - theta);
     controle_som_erro_theta += erro_theta;
+	controle_som_erro_theta=atan2(controle_som_erro_theta);
      //   erro_angular = erro_theta;
 
     percent_giro = P * erro_theta;
@@ -80,12 +79,12 @@ float controle_linear(Pose refer, Pose atual, Acionamento &a){
     return erro_linear;
     }
 
-    float controle_angular(Pose refer, Pose atual, Acionamento &a){
+float controle_angular(Pose refer, Pose atual, Acionamento &a){
     float erro_theta=0;
     float velocidade_angular=0;
     int sinal=1;
 
-    erro_theta = refer.theta - atual.theta;
+    erro_theta = atan2(refer.theta - atual.theta);
 
     velocidade_angular = P_ANGULO * erro_theta;
 
