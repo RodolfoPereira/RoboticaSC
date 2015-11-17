@@ -1,0 +1,75 @@
+/*
+ * $Id$
+ */
+
+#include "HTSMUX/HTSMUX-driver.h"
+
+task main () {
+
+  // Variable to hold measurement data from US sensor
+  int l1 = 0;
+  int l2 = 0;
+
+  // configure the port for low speed I2C
+    SetSensor(S1, SENSOR_LOWSPEED);
+
+    SetSensorType(IN_2, SENSOR_TYPE_COLORGREEN);
+
+    SetSensorType(IN_3, SENSOR_TYPE_COLORGREEN);
+
+    SetSensorType(IN_4, SENSOR_TYPE_LOWSPEED);
+
+  // Tell the SMUX to start scanning its ports.
+  // this takes 500ms
+  if (!HTSMUXscanPorts(S1)) {
+    // Scan failed, handle the error
+    TextOut(0, LCD_LINE1, "Scan failed!");
+    Wait(10);
+  }
+
+  // The sensor in this example is a LEGO Ultra Sound sensor connected
+  // to the SMUX's 1st port (msensor_S1_1).
+  // SMUX sensor ports use the following naming standard:
+  // If the SMUX is connected to the NXT's S1 port, it starts with msensors_S1.
+  // If the SMUX were to be connected to the S2 port, it would start with msensors_S2
+  //
+  // The second part denotes the SMUX's port, which it has 4 of.
+  // If the sensor was connected to the SMUX port 1 and the SMUX was connected to
+  // the NXT's S1 port, the smuxport would be written as msensor_S1_1.
+  // If the sensor was connected to the SMUX port 3 with the SMUX still connected
+  // to S1, it would be written as msensor_S1_3
+
+
+
+    smuxSetSensorLegoLight(msensor_S1_3,true);
+   // smuxSensorLegoLightNorm(msensor_S1_1);
+
+    smuxSetSensorLegoLight(msensor_S1_4,true);
+   // smuxSensorLegoLightNorm(msensor_S1_2);
+
+ //   smuxSensorLegoUS(msensor_S1_3);
+
+   // smuxSensorLegoUS(msensor_S1_4);
+
+  while (true) {
+
+    l2 = smuxSensorLegoLightNorm(msensor_S1_3);
+
+    l1 = smuxSensorLegoLightNorm(msensor_S1_4);
+
+   // TextOut(0, LCD_LINE2, "Light:", false);
+    NumOut(30, LCD_LINE4, Sensor(IN_2));
+   // TextOut(0, LCD_LINE4, "Light:", false);
+    NumOut(60, LCD_LINE4, Sensor(IN_3));
+   // TextOut(0, LCD_LINE6, "DISTANCE3:", false);
+   // NumOut(60, LCD_LINE2, Sensor(IN_4));
+
+    NumOut(30, LCD_LINE2, l1);
+
+    NumOut(60, LCD_LINE2, l2);
+  }
+}
+
+/*
+ * $Id$
+ */
