@@ -1,0 +1,109 @@
+#define distancia 20
+#define vel_linear 45
+#define vel_ang 15
+
+struct Cali{
+	int branco, preto;
+};
+void menu_cali(Cali &c){
+	int sensor;
+	while(!ButtonPressed(BTNCENTER, false)){
+		sensor = (Sensor(IN_1)+Sensor(IN_2))/2;
+		ClearScreen();
+		TextOut(0, LCD_LINE1, "press esq white");
+		TextOut(0, LCD_LINE3, "press dir black");
+		Wait(1500);
+		if(ButtonPressed(BTNLEFT, false)){
+			ClearScreen();
+			TextOut(0, LCD_LINE1, "branco calibrado");
+			NumOut(50,LCD_LINE3, sensor);
+			c.branco = sensor;
+			Wait(2000);
+		}
+		if(ButtonPressed(BTNRIGHT, false)){
+			ClearScreen();
+			TextOut(0, LCD_LINE1,"preto calibrado");
+			NumOut(50,LCD_LINE3, sensor);
+			c.preto = sensor;
+			Wait(2000);
+		}
+		Wait(100);
+	}
+}
+void Calibra(Cali &c){
+	while(!ButtonPressed(BTNCENTER, false)){
+		ClearScreen();
+		TextOut(0, LCD_LINE1,"calibrar-sensores");
+		Wait(2000);
+		if(ButtonPressed(BTNLEFT, false)){
+			menu_cali(c);
+		}
+	}
+}
+
+void Executa(Cali &c){
+	int branco = c.branco;
+	int preto = c.preto;
+	while(!ButtonPressed(BTNCENTER, false)){
+		
+		if(Sensor(IN_1) >= branco && Sensor(IN_2) >= branco){
+			OnFwd(OUT_AB, vel_linear);
+		}
+
+    	if(Sensor(IN_1) <= preto && Sensor(IN_2) >= branco){
+		    OnFwd(OUT_B,vel_linear+vel_ang);
+		    OnRev(OUT_A, vel_linear);
+      	}
+    	if(Sensor(IN_2) <= preto && Sensor(IN_1) >= branco){
+		    OnFwd(OUT_A,vel_linear+vel_ang);
+		    OnRev(OUT_B, vel_linear);
+      	}
+		if((SensorUS(IN_3) <= 0) ? false : (SensorUS(IN_3) <= distancia)){
+			RotateMotor(OUT_AB, 40, -240);
+		    //passo 1 adquirir uma distancia segura do obstaculo
+		    RotateMotorEx(OUT_AB, 40, 590, 90, true, true);
+		    //passo 2 virar 90º para direita
+		    RotateMotor(OUT_AB, 40, 600);
+		    //passo 3 ir em linha reta até desviar do obstaculo
+		    RotateMotorEx(OUT_AB, 40, 410, -90, true, true);
+		    //virar mais 90º para direção oposta a virada anterior
+		    RotateMotor(OUT_AB, 40, 1120);
+		    //andar para frente para efetuar o desvio do obstaculo propriamente dito
+		    RotateMotorEx(OUT_AB, 40, 390, -90, true, true);
+		    //fccgazezrycdtufguighuigbvtrdxwatrdftudftrsdtstydtufcghcyrdtrd
+		    RotateMotor(OUT_AB, 40, 600);
+		    //asuiohfuishfjsnfjksdnfkjnsdfbdfuigbdfuibgduifbguidfbgçbngçndoçgd
+		    RotateMotorEx(OUT_AB, 40, 590, 90, true, true);
+		}
+		
+		ClearScreen();
+		TextOut(0, LCD_LINE1,"branco");
+		NumOut(50, LCD_LINE1, branco);
+		TextOut(0, LCD_LINE2,"preto");
+		NumOut(50, LCD_LINE2, preto);
+		TextOut(10, LCD_LINE4,"sensores");
+		NumOut(30,LCD_LINE5,Sensor(IN_1));
+		NumOut(60,LCD_LINE5,Sensor(IN_2));
+		NumOut(90,LCD_LINE5,SensorUS(IN_3));
+		Wait(100);
+	}
+}
+
+task main(){
+	SetSensorLight(IN_1);
+	SetSensorLight(IN_2);
+	SetSensorLowspeed(IN_3);
+	Cali c;
+	while(true){
+		ClearScreen();
+		TextOut(0, LCD_LINE2,"Cali-press-esq");
+		TextOut(0, LCD_LINE3,"Excuta-press-dir");
+		Wait(200);
+		Off(OUT_AB);
+		if(ButtonPressed(BTNLEFT, false))
+			Calibra(c);
+		
+		if(ButtonPressed(BTNRIGHT, false))
+			Executa(c);
+	}
+}
