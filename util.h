@@ -14,6 +14,8 @@ float atan2(float ang){
 
 	return 0;
 }
-
+float pow(float base){
+	return base*base;
+}
 
 #endif
