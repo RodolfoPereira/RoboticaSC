@@ -1,0 +1,18 @@
+#define MOTOR_ATIRADOR OUT_C
+#define SENSOR_SONAR IN_1
+
+task main(){
+	SetSensorType(SENSOR_SONAR, SENSOR_TYPE_LOWSPEED);
+
+	while(true){
+		OnFwdSync(OUT_AB, 40, 0);
+		Wait(100);
+		if(SensorUS(SENSOR_SONAR) <= 40){
+			Off(OUT_AB);
+			OnFwd(MOTOR_ATIRADOR, 70);
+			Wait(50);
+
+		}
+
+	}
+}
