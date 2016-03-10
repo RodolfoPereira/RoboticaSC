@@ -10,11 +10,9 @@ task main(){
         OnFwdSync(OUT_AB, 30, 0);
         Wait(100);
         
-        if(SensorUS(IN_4) < 7   ){
+       if(SensorUS(IN_4) < 8 || SensorUS(IN_3) < 30){
             Float(OUT_AB);
-            Wait(200);
-            Off(OUT_AB);
-        }    
+        }  
         TextOut(15, LCD_LINE1, "Sensor sonar:");
         
         TextOut(20, LCD_LINE3, "IN_1");
